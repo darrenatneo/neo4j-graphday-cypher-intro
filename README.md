@@ -1,6 +1,6 @@
-# Graph Summit 2025 - Workshop Digital Twin
+# Graph Day Hands On - Workshop Digital Twin
 
-This repository contains the material used during the **Graph Summit 2025 - Building a Graph Solution Workshops**.
+This repository contains the material used during the **Neo4j Graph Day - Intro to Cyper and Neo4j**.
 
 The aim of the workshop is to provide a structured way to build a small Digital Twin Knowledge Graph. It answers questions from a business perspective and discusses how a Digital Twin graph could be extended for more insights and values.
 
@@ -81,13 +81,12 @@ The following high level steps are required, to build the demo environment (ther
    1. [Neo4j Aura](https://neo4j.com/cloud/aura-free/)
    2. [Neo4j Desktop](https://neo4j.com/download-center/)
       - If you are using Neo4j Desktop, you will need to ensure that APOC is added to any graph you create. Installation instructions can be found [here](https://neo4j.com/docs/desktop-manual/current/).
-   3. [Neo4j Sandbox](https://sandbox.neo4j.com/) use a "Blank Sandbox"
-
-2. Open Neo4j Browser and run the [`load-all-data.cypher`](https://raw.githubusercontent.com/neo4j-field/gsummit2024/main/cypher/load-all-data.cypher) script from the code directory above. You can copy & paste the complete code into the Neo4j Browser query window.
+ 
+2. Open Neo4j Browser and run the [`load-all-data.cypher`](https://raw.githubusercontent.com/neo4j-field/neo4j-graphday-cypher-intro/main/cypher/load-all-data.cypher) script from the code directory above. You can copy & paste the complete code into the Neo4j Browser query window.
 
 3. After the script has finished loading, you can check your data model. Run the command `CALL apoc.meta.subGraph({labels:['OperationalPoint', 'POI']})` in your Browser query window. It should look like the following (maybe yours is a bit more mixed up):
 
-<img width="800" alt="Data Model - Digital Twin" src="https://raw.githubusercontent.com/neo4j-field/gsummit2024/main/images/Model.svg">
+<img width="800" alt="Data Model - Digital Twin" src="https://raw.githubusercontent.com/neo4j-field/neo4j-graphday-cypher-intro/main/images/Model.svg">
 
 The model shows that we have an `OperationalPoint` Node that is connected to itself with a `SECTION` relationship. This means, `OperationalPoint`s are connected together and make up the rail network .
 
@@ -95,7 +94,7 @@ The model shows that we have an `OperationalPoint` Node that is connected to its
 
 ## Run some Cypher queries on your Graph
 
-> You can find a copy of these queries in the [`all_queries.cypher`](https://raw.githubusercontent.com/neo4j-field/gsummit2024/main/cypher/all_queries.cypher) file.
+> You can find a copy of these queries in the [`all_queries.cypher`](https://raw.githubusercontent.com/neo4j-field/neo4j-graphday-cypher-intro/main/cypher/all_queries.cypher) file.
 >
 > For the workshop we will be running through the contents of this readme.
 
@@ -337,7 +336,7 @@ WHERE
 SET r.traveltime = (r.sectionlength / r.speed) * 60 * 60
 ```
 
-> **IMPORTANT** To be able to use the [NeoDash dashboard](https://raw.githubusercontent.com/neo4j-field/gsummit2024/main/dashboards/digital-twin_dashboard.json) in this repository fully, you will need to execute this query.
+> **IMPORTANT** To be able to use the [NeoDash dashboard](https://raw.githubusercontent.com/neo4j-field/neo4j-graphday-cypher-intro/main/dashboards/digital-twin_dashboard.json) in this repository fully, you will need to execute this query.
 
 ## Shortest Path Queries using different Shortest Path functions in Neo4j
 
@@ -379,11 +378,11 @@ CALL apoc.algo.dijkstra(stockholm, malmo, 'SECTION', 'traveltime') YIELD path, w
 RETURN length(path), weight;
 ```
 
-## NeoDash
+## Dashboards
 
 Everything we've done so far has been within the development tooling of Neo4j, but for our product owners to see the benefits, we probably don't want to show a lot of Cypher.
 
-From here, we're going to go to [NeoDash](dashboards/README.md) to take our model into something usable for those of us who don't want to code.
+From here, we're going to go to [Dashboards](dashboards/README.md) to take our model into something usable for those of us who don't want to code.
 
 ## Graph Data Science (GDS)
 
