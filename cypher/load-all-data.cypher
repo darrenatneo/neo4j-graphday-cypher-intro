@@ -40,7 +40,7 @@ CREATE INDEX index_OperationalPoint_name IF NOT EXISTS FOR (op:OperationalPoint)
 //
 // Loading Operational Points
 //
-LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/neo4j-field/gsummit2024/main/data/OperationalPoint_All.csv" AS row
+LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/darrenatneo/neo4j-graphday-cypher-intro/main/data/OperationalPoint_All.csv" AS row
 //This WITH is to ensure our data is as normalized as we can
 WITH
     trim(row.id) AS id, //trim will remove and start and trailing spaces from an ID
@@ -60,7 +60,7 @@ RETURN DISTINCT 'Complete';
 //
 // Load Section Length Data
 //
-LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/neo4j-field/gsummit2024/main/data/SECTION_ALL_Length.csv" AS row
+LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/darrenatneo/neo4j-graphday-cypher-intro/main/data/SECTION_ALL_Length.csv" AS row
 WITH
     trim(row.source) AS sourceId,
     trim(row.target) AS targetId,
@@ -73,7 +73,7 @@ SET s.sectionlength = length;
 //
 // Load Speed Data
 //
-LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/neo4j-field/gsummit2024/main/data/SECTION_ALL_Speed.csv" AS row
+LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/darrenatneo/neo4j-graphday-cypher-intro/main/data/SECTION_ALL_Speed.csv" AS row
 WITH
     trim(row.source) AS sourceId,
     trim(row.target) AS targetId,
@@ -86,7 +86,7 @@ SET s.speed = speed;
 //
 // Load Point of Interest data
 //
-LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/neo4j-field/gsummit2024/main/data/POIs.csv' AS row
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/darrenatneo/neo4j-graphday-cypher-intro/main/data/POIs.csv' AS row
 WITH 
     row.CITY AS city,
     row.POI_DESCRIPTION AS description,
