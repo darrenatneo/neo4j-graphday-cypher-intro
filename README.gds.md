@@ -1,10 +1,23 @@
-# Graph Data Science (GDS)
+# Aura Graph Analytics (GDS)
 
-This file gives some advice on how to use GDS with the dataset.
+This file gives some advice on how to use Aura Graph Data Science with the dataset.
 
-> **NB** to use GDS you will need to be either using Sandbox OR Desktop environments, Aura Free will not allow access.
 
 We will be projecting a graph into the GDS [Graph Catalog](https://neo4j.com/docs/graph-data-science/current/management-ops/graph-catalog-ops/) using [Native Projection](https://neo4j.com/docs/graph-data-science/current/management-ops/projections/graph-project/) 
+
+Aura Graph Analytics uses serverless architecture to host ephemeral sessions and dynamically created graph projections. Algorithms can be executed on these projections and sessions only conume Aura credits while in use.
+
+We can explicitly create a new Aura GDS Session in the following way :
+
+```cypher
+CALL gds.session.getOrCreate(
+  'test-session',
+  '2GB',
+  duration({minutes: 30})
+)
+YIELD name
+RETURN name;
+```
 
 If you want to ensure you have no existing projections you can run the following Cypher to clear your Graph Catalog:
 
@@ -20,11 +33,14 @@ We will project a graph named 'OperationalPoints' into the Graph Catalog. We wil
 CALL gds.graph.project(
     'OperationalPoints',
     'OperationalPoint',
-    {SECTION: {orientation: 'UNDIRECTED'}},
-    {
-        relationshipProperties: ['sectionlength', 'traveltime']
-    }
-);
+    'SECTION',
+  {
+    relationshipProperties: ['sectionlength', 'traveltime'],
+    undirectedRelationshipTypes: ['SECTION'],
+    sessionId: 'd7ef8b94-e44e3e75'
+  }
+) YIELD nodeCount, relationshipCount, projectMillis
+RETURN nodeCount;
 ```
 
 ### Path Finding
@@ -33,8 +49,8 @@ We can calculate the shortest path between two stations - for example, Malmö Ce
 
 ```cypher
 MATCH     
-    (:OperationalPointName {name:'Stockholms central'})<-[:NAMED]-(stockholm:OperationalPoint),
-    (:OperationalPointName {name:'Malmö central'})<-[:NAMED]-(malmo:OperationalPoint)
+    (stockholm:OperationalPoint {name:'Stockholms central'}),
+    (malmo:OperationalPoint {name:'Malmö central'})
 CALL gds.shortestPath.dijkstra.stream('OperationalPoints', {
     sourceNode: malmo,
     targetNode: stockholm,
@@ -48,8 +64,8 @@ Do we get the same result if we use the `sectionlength` relationship property as
 
 ```cypher
 MATCH     
-    (:OperationalPointName {name:'Stockholms central'})<-[:NAMED]-(stockholm:OperationalPoint),
-    (:OperationalPointName {name:'Malmö central'})<-[:NAMED]-(malmo:OperationalPoint)
+    (stockholm:OperationalPoint {name:'Stockholms central'}),
+    (malmo:OperationalPoint {name:'Malmö central'})
 CALL gds.shortestPath.dijkstra.stream('OperationalPoints', {
     sourceNode: malmo,
     targetNode: stockholm,
@@ -61,7 +77,7 @@ RETURN *;
 
 ### Community Detection
 
-Now we use the [Weakly Connected Components](https://neo4j.com/docs/graph-data-science/current/algorithms/wcc/) algorithm in 'stream' mode to review `OperationalPoint`s that are _not_ well connected to the network:
+Now we use the [Leiden Community Detection](https://neo4j.com/docs/graph-data-science/current/algorithms/leiden/) algorithm in 'stream' mode to review `OperationalPoint`s that are _not_ well connected to the network:
 
 ```cypher
 CALL gds.wcc.stream('OperationalPoints') YIELD nodeId, componentId
@@ -70,24 +86,24 @@ RETURN nodes, componentId
 ORDER BY size(nodes) ASC LIMIT 50;
 ```
 
-We can also write the Weakly Connected Components `componentId` properties to the database so we can query and visualise them later:
+We can also write the Leiden `communityId` properties to the database so we can query and visualise them later:
 
 ```cypher
-CALL gds.wcc.write('OperationalPoints', {writeProperty: 'componentId'});
-```
+CALL gds.leiden.write('OperationalPoints', {writeProperty: 'communityId'}) YIELD communityCount, nodeCount
+RETURN communityCount, nodeCount;```
 
-We should index our new Weakly Connected Components `componentId` property, so that we can query with it in a performant way:
+We should index our new `communityId` property, so that we can query with it in a performant way:
 
 ```cypher
-CREATE INDEX index_OperationalPoint_componentid IF NOT EXISTS FOR (opn:OperationalPoint) ON (opn.componentId);
+CREATE INDEX index_OperationalPoint_communityId IF NOT EXISTS FOR (opn:OperationalPoint) ON (opn.communityId);
 ```
 
 Let's find a specific `OperationalPoint` and view the other members of its community. You should see that it belongs to an isolated group of `OperationalPoint`s.
 
 ```cypher
 MATCH (op:OperationalPoint {id: 'UKN4288'})
-WITH op.componentId as component
-MATCH path = (:OperationalPoint {componentId: component})-[:SECTION]->()
+WITH op.communityId as component
+MATCH path = (:OperationalPoint {communityId: component})-[:SECTION]->()
 RETURN path
 ```
 
@@ -106,7 +122,8 @@ ORDER BY score DESC LIMIT 50;
 We should write the Degree Centrality `degreeScore` properties to the database so we can query and visualise them later:
 
 ```cypher
-CALL gds.degree.write('OperationalPoints', {writeProperty: 'degreeScore'})
+CALL gds.degree.write('OperationalPoints', {writeProperty: 'degreeScore'}) YIELD centralityDistribution
+RETURN centralityDistribution;
 ```
 
 Using the [Betweenness Centrality](https://neo4j.com/docs/graph-data-science/current/algorithms/betweenness-centrality/) algorithm we can identify important nodes in the graph by another metric - those nodes which sit on the shortest path between the most other nodes.
@@ -123,7 +140,9 @@ ORDER BY score DESC LIMIT 50;
 We should also write the Betweenness Centrality scores back to the database so we can query and visualise them later:
 
 ```cypher
-CALL gds.betweenness.write('OperationalPoints', {writeProperty: 'betweennessScore'})
+CALL gds.betweenness.write('OperationalPoints', {writeProperty: 'betweennessScore'}) 
+YIELD computeMillis
+RETURN computeMillis
 ```
 
 Let's also index our new Degree Centrality `degreeScore`and Betweenness Centrality `betweennessScore` properties, so that we can query using them in a performant way:
