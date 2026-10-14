@@ -157,5 +157,7 @@ CREATE INDEX index_OperationalPoint_betweennessScore IF NOT EXISTS FOR (opn:Oper
 Finally, it's best practice to remove your graph projections from memory when you're finished with them:
 
 ```cypher
-CALL gds.graph.drop('OperationalPoints')
+CALL gds.graph.list() YIELD graphName AS toDrop
+CALL gds.graph.drop(toDrop) YIELD graphName
+RETURN "Dropped " + graphName;
 ```
