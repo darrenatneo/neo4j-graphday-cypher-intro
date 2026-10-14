@@ -114,10 +114,18 @@ RETURN op
 LIMIT 10;
 ```
 
-This query will get `50` random `OperationalPoint` Nodes from the database, returning them to the browser.
+This query will retrieve 50 `OperationalPoint` Nodes that are NOT small stations
 
 ```cypher
-MATCH (op:OperationalPoint)
+MATCH (op:OperationalPoint&!SmallStation)
+RETURN op
+LIMIT 50;
+```
+
+You can combine quite complex logic in your label specifications !
+
+```cypher
+MATCH (op:(OperationalPoint&!SmallStation)|Junction)
 RETURN op
 LIMIT 50;
 ```
@@ -146,6 +154,15 @@ In order to make our query future proof, and more performant, we should add the 
 MATCH path=(:OperationalPoint)-[:SECTION]->(:OperationalPoint)
 RETURN path
 LIMIT 100;
+```
+
+We can also try our QPP example from the slides, it describes paths from Malmo that traverse over high speed sections of track
+
+```cypher
+MATCH path = (malmo:OperationalPoint {name:'Malmö central'})
+  ((a)-[r:SECTION]->(b)
+    WHERE r.speed > 80.0){1,5}
+RETURN path
 ```
 
 ## Filtering Queries
@@ -336,7 +353,7 @@ WHERE
 SET r.traveltime = (r.sectionlength / r.speed) * 60 * 60
 ```
 
-> **IMPORTANT** To be able to use the [NeoDash dashboard](https://raw.githubusercontent.com/darrenatneo/neo4j-graphday-cypher-intro/main/dashboards/digital-twin_dashboard.json) in this repository fully, you will need to execute this query.
+> **IMPORTANT** To be able to use the [Dashboard](https://raw.githubusercontent.com/darrenatneo/neo4j-graphday-cypher-intro/main/dashboards/digital-twin_dashboard.json) in this repository fully, you will need to execute this query.
 
 ## Shortest Path Queries using different Shortest Path functions in Neo4j
 
